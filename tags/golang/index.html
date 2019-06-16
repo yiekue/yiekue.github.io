@@ -14,7 +14,7 @@
     
     
     
-    <title>coderic</title>
+    <title>标签: golang | coderic</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     
     <meta name="theme-color" content="#3F51B5">
@@ -24,7 +24,7 @@
     <meta name="description" content="coder杂货店">
 <meta property="og:type" content="website">
 <meta property="og:title" content="coderic">
-<meta property="og:url" content="http://coderic.top/index.html">
+<meta property="og:url" content="http://coderic.top/tags/golang/index.html">
 <meta property="og:site_name" content="coderic">
 <meta property="og:description" content="coder杂货店">
 <meta property="og:locale" content="zh-CN">
@@ -65,7 +65,7 @@
     <div class="scroll-wrap flex-col">
       <ul class="nav">
         
-            <li class="waves-block waves-effect active">
+            <li class="waves-block waves-effect">
               <a href="/">
                 <i class="icon icon-lg icon-home"></i>
                 主页
@@ -97,7 +97,7 @@
         <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
           <i class="icon icon-lg icon-navicon"></i>
         </a>
-        <div class="flex-col header-title ellipsis">coderic</div>
+        <div class="flex-col header-title ellipsis">标签: golang</div>
         
         <div class="search-wrap" id="search-wrap">
             <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
@@ -116,81 +116,58 @@
         
     </div>
 </header>
-<header class="content-header index-header">
+<header class="content-header tags-header">
 
     <div class="container fade-scale">
-        <h1 class="title">coderic</h1>
+        <h1 class="title">标签: golang</h1>
         <h5 class="subtitle">
-            
-                
             
         </h5>
     </div>
 
     
+<div class="tabs-bar container">
+    <nav class="tags-list">
+        <a href="/tags" style="-webkit-order:-1;order:-1" class="tags-list-item waves-effect waves-button waves-light
+            ">全部</a>
+        
+
+            <a href="/tags/优化/" style="-webkit-order:0;order:0" class="tags-list-item waves-effect waves-button waves-light">优化</a>
+
+        
+
+            <a href="/tags/golang/" style="-webkit-order:1;order:1" class="tags-list-item waves-effect waves-button waves-light active">golang</a>
+
+        
+
+            <a href="/tags/编程/" style="-webkit-order:2;order:2" class="tags-list-item waves-effect waves-button waves-light">编程</a>
+
+        
+    </nav>
+    <!-- PC show more-->
+    <div class="tags-list-more">
+        <a href="javascript:;" onclick="BLOG.tabBar(this)" class="action tags-list-item waves-effect waves-circle waves-light"><i class="icon icon-ellipsis-h"></i></a>
+    </div>
+</div>
+
 
 
 </header>
 
-<div class="container body-wrap">
-
-    <ul class="post-list">
+<div class="container body-wrap fade">
     
-        <li class="post-list-item fade">
-            <article id="post-Bundle Adjustment" class="article-card article-type-post" itemprop="blogPost">
+            <div class="waterfall">
+          
 
+            <div class="waterfall-item">
+  <article class="article-card archive-article">
     <div class="post-meta">
-        <time class="post-time" title="2019-06-16 22:03:28" datetime="2019-06-16T14:03:28.065Z" itemprop="datePublished">2019-06-16</time>
+      <time class="post-time" title="2019-06-16 21:54:15" datetime="2019-06-16T13:54:15.000Z" itemprop="datePublished">2019-06-16</time>
 
-        
-
-
-    </div>
-
-    
-
-
-  
-    <h3 class="post-title" itemprop="name">
-      <a class="post-title-link" href="/2019/06/16/Bundle Adjustment/">Bundle Adjustment</a>
-    </h3>
-  
-
-
-
-
-    <div class="post-content" id="post-content" itemprop="postContent">
-
-    
-        为了描述简便，用函数 $f(x)$ 来表示我们的目标函数，其中 $x$ 是包含了我们所有参数的向量，现在我们的目标就成了求解 $f(x)$ 在何处取得极小值。这个函数的参数这么多，很明显不能直接一步到位，但是从某个值出发（对于三维重建的问题，这个出发点已经有了，就是前面计算出来的相机姿态和三维点坐标）慢慢向正确的值靠近，一次靠近一丢丢（$\delta x$），很多次后就可以很接近或者达到正确...
-    
-
-        <a href="/2019/06/16/Bundle Adjustment/" class="post-more waves-effect waves-button">
-            阅读全文…
-        </a>
-    </div>
-    
-    <div class="post-footer">
-        
-	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/优化/">优化</a></li></ul>
-
-    </div>
-    
-</article>
-
-        </li>
-    
-        <li class="post-list-item fade">
-            <article id="post-gh2c" class="article-card article-type-post" itemprop="blogPost">
-
-    <div class="post-meta">
-        <time class="post-time" title="2019-06-16 21:54:15" datetime="2019-06-16T13:54:15.000Z" itemprop="datePublished">2019-06-16</time>
-
-        
+      
 
 
     </div>
-
     
 
 
@@ -202,25 +179,6 @@
 
 
 
-
-    <div class="post-content" id="post-content" itemprop="postContent">
-
-    
-        
-最近需要进行http2相关的工作，但是开发环境和测试环境都的curl版本都太老了不支持http2，正好最近在学习golang，于是决定自己造个轮子：用go语言实现一个建议的http2客户端，以本文记录折腾过程。完整代码地址：https://github.com/yiekue/gh2c.
-
-涉及内容：
-
-flag包的使用
-标准库中http.Client的基本使用
-golang中的http2
-...
-    
-
-        <a href="/2019/06/16/gh2c/" class="post-more waves-effect waves-button">
-            阅读全文…
-        </a>
-    </div>
     
     <div class="post-footer">
         
@@ -228,15 +186,15 @@ golang中的http2
 
     </div>
     
-</article>
-
-        </li>
-    
-    </ul>
-
-    
-
+  </article>
 </div>
+
+        
+            </div>
+        
+    
+</div>
+
 
         <footer class="footer">
     <div class="top">
@@ -268,7 +226,7 @@ golang中的http2
 <div class="global-share" id="globalShare">
     <ul class="reset share-icons">
       <li>
-        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://coderic.top/&title=coderic&pic=http://coderic.top/img/touxiang.jpg" data-title="微博">
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://coderic.top/tags/golang/&title=coderic&pic=http://coderic.top/img/touxiang.jpg" data-title="微博">
           <i class="icon icon-weibo"></i>
         </a>
       </li>
@@ -278,22 +236,22 @@ golang中的http2
         </a>
       </li>
       <li>
-        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://coderic.top/&title=coderic&source=coder杂货店" data-title=" QQ">
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://coderic.top/tags/golang/&title=coderic&source=coder杂货店" data-title=" QQ">
           <i class="icon icon-qq"></i>
         </a>
       </li>
       <li>
-        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://coderic.top/" data-title=" Facebook">
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://coderic.top/tags/golang/" data-title=" Facebook">
           <i class="icon icon-facebook"></i>
         </a>
       </li>
       <li>
-        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=coderic&url=http://coderic.top/&via=http://coderic.top" data-title=" Twitter">
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=coderic&url=http://coderic.top/tags/golang/&via=http://coderic.top" data-title=" Twitter">
           <i class="icon icon-twitter"></i>
         </a>
       </li>
       <li>
-        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://coderic.top/" data-title=" Google+">
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://coderic.top/tags/golang/" data-title=" Google+">
           <i class="icon icon-google-plus"></i>
         </a>
       </li>
@@ -304,7 +262,7 @@ golang中的http2
 <div class="page-modal wx-share" id="wxShare">
     <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
-    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://coderic.top/" alt="微信分享二维码">
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://coderic.top/tags/golang/" alt="微信分享二维码">
 </div>
 
 

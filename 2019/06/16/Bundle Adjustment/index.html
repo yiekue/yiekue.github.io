@@ -20,22 +20,23 @@
     <meta name="theme-color" content="#3F51B5">
     
     
-    <meta name="keywords" content>
+    <meta name="keywords" content="优化">
     <meta name="description" content="为了描述简便，用函数 $f(x)$ 来表示我们的目标函数，其中 $x$ 是包含了我们所有参数的向量，现在我们的目标就成了求解 $f(x)$ 在何处取得极小值。这个函数的参数这么多，很明显不能直接一步到位，但是从某个值出发（对于三维重建的问题，这个出发点已经有了，就是前面计算出来的相机姿态和三维点坐标）慢慢向正确的值靠近，一次靠近一丢丢（$\delta x$），很多次后就可以很接近或者达到正确的值了">
+<meta name="keywords" content="优化">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Bundle Adjustment">
 <meta property="og:url" content="http://coderic.top/2019/06/16/Bundle Adjustment/index.html">
 <meta property="og:site_name" content="coderic">
 <meta property="og:description" content="为了描述简便，用函数 $f(x)$ 来表示我们的目标函数，其中 $x$ 是包含了我们所有参数的向量，现在我们的目标就成了求解 $f(x)$ 在何处取得极小值。这个函数的参数这么多，很明显不能直接一步到位，但是从某个值出发（对于三维重建的问题，这个出发点已经有了，就是前面计算出来的相机姿态和三维点坐标）慢慢向正确的值靠近，一次靠近一丢丢（$\delta x$），很多次后就可以很接近或者达到正确的值了">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-06-16T13:46:08.899Z">
+<meta property="og:updated_time" content="2019-06-16T14:03:28.065Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Bundle Adjustment">
 <meta name="twitter:description" content="为了描述简便，用函数 $f(x)$ 来表示我们的目标函数，其中 $x$ 是包含了我们所有参数的向量，现在我们的目标就成了求解 $f(x)$ 在何处取得极小值。这个函数的参数这么多，很明显不能直接一步到位，但是从某个值出发（对于三维重建的问题，这个出发点已经有了，就是前面计算出来的相机姿态和三维点坐标）慢慢向正确的值靠近，一次靠近一丢丢（$\delta x$），很多次后就可以很接近或者达到正确的值了">
     
         <link rel="alternate" type="application/atom+xml" title="coderic" href="/atom.xml">
     
-    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="shortcut icon" href="/img/touxiang.jpg">
     <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
     <script>window.lazyScripts=[]</script>
 
@@ -76,20 +77,6 @@
             <li class="waves-block waves-effect">
               <a href="/archives">
                 <i class="icon icon-lg icon-archives"></i>
-                分类
-              </a>
-            </li>
-        
-            <li class="waves-block waves-effect">
-              <a href="/tags">
-                <i class="icon icon-lg icon-tags"></i>
-                标签
-              </a>
-            </li>
-        
-            <li class="waves-block waves-effect">
-              <a href="/categories">
-                <i class="icon icon-lg icon-th-list"></i>
                 归档
               </a>
             </li>
@@ -137,7 +124,7 @@
         <h1 class="title">Bundle Adjustment</h1>
         <h5 class="subtitle">
             
-                <time datetime="2019-06-16T13:46:08.899Z" itemprop="datePublished" class="page-time">
+                <time datetime="2019-06-16T14:03:28.065Z" itemprop="datePublished" class="page-time">
   2019-06-16
 </time>
 
@@ -167,7 +154,7 @@
     <div class="post-card">
         <h1 class="post-card-title">Bundle Adjustment</h1>
         <div class="post-meta">
-            <time class="post-time" title="2019-06-16 21:46:08" datetime="2019-06-16T13:46:08.899Z" itemprop="datePublished">2019-06-16</time>
+            <time class="post-time" title="2019-06-16 22:03:28" datetime="2019-06-16T14:03:28.065Z" itemprop="datePublished">2019-06-16</time>
 
             
 
@@ -192,7 +179,7 @@
     <div class="content">
         
 <span class="post-time">
-    最后更新时间：<time datetime="2019-06-16T13:46:08.899Z" itemprop="dateUpdated">2019-06-16 21:46:08</time>
+    最后更新时间：<time datetime="2019-06-16T14:03:28.065Z" itemprop="dateUpdated">2019-06-16 22:03:28</time>
 </span><br>
 
 
@@ -214,6 +201,8 @@
 
         <div class="post-footer">
             
+	<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/优化/">优化</a></li></ul>
+
 
             
 <div class="page-share-wrap">
@@ -267,16 +256,16 @@
     </div>
 
     
-<nav class="post-nav flex-row flex-justify-between">
+<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
   
-    <div class="waves-block waves-effect prev">
-      <a href="/2019/06/16/gh2c/" id="post-prev" class="post-nav-link">
-        <div class="tips"><i class="icon icon-angle-left icon-lg icon-pr"></i> Prev</div>
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/06/16/gh2c/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
         <h4 class="title">造轮子 | golang | http2简易客户端</h4>
       </a>
     </div>
-  
-
   
 </nav>
 
