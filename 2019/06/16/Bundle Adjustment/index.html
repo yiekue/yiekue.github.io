@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>Bundle Adjustment | coderic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content>
+    <meta name="description" content="为了描述简便，用函数 $f(x)$ 来表示我们的目标函数，其中 $x$ 是包含了我们所有参数的向量，现在我们的目标就成了求解 $f(x)$ 在何处取得极小值。这个函数的参数这么多，很明显不能直接一步到位，但是从某个值出发（对于三维重建的问题，这个出发点已经有了，就是前面计算出来的相机姿态和三维点坐标）慢慢向正确的值靠近，一次靠近一丢丢（$\delta x$），很多次后就可以很接近或者达到正确的值了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Bundle Adjustment">
+<meta property="og:url" content="http://coderic.top/2019/06/16/Bundle Adjustment/index.html">
+<meta property="og:site_name" content="coderic">
+<meta property="og:description" content="为了描述简便，用函数 $f(x)$ 来表示我们的目标函数，其中 $x$ 是包含了我们所有参数的向量，现在我们的目标就成了求解 $f(x)$ 在何处取得极小值。这个函数的参数这么多，很明显不能直接一步到位，但是从某个值出发（对于三维重建的问题，这个出发点已经有了，就是前面计算出来的相机姿态和三维点坐标）慢慢向正确的值靠近，一次靠近一丢丢（$\delta x$），很多次后就可以很接近或者达到正确的值了">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-06-16T13:46:08.899Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Bundle Adjustment">
+<meta name="twitter:description" content="为了描述简便，用函数 $f(x)$ 来表示我们的目标函数，其中 $x$ 是包含了我们所有参数的向量，现在我们的目标就成了求解 $f(x)$ 在何处取得极小值。这个函数的参数这么多，很明显不能直接一步到位，但是从某个值出发（对于三维重建的问题，这个出发点已经有了，就是前面计算出来的相机姿态和三维点坐标）慢慢向正确的值靠近，一次靠近一丢丢（$\delta x$），很多次后就可以很接近或者达到正确的值了">
+    
+        <link rel="alternate" type="application/atom+xml" title="coderic" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/touxiang.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yiekue</h5>
+          <a href="mailto:yiekue@qq.com" title="yiekue@qq.com" class="mail">yiekue@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yiekue" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">Bundle Adjustment</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">Bundle Adjustment</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-06-16T13:46:08.899Z" itemprop="datePublished" class="page-time">
+  2019-06-16
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#梯度下降（最速下降）法"><span class="post-toc-number">1.</span> <span class="post-toc-text">梯度下降（最速下降）法</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#牛顿法"><span class="post-toc-number">2.</span> <span class="post-toc-text">牛顿法</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#高斯牛顿法"><span class="post-toc-number">3.</span> <span class="post-toc-text">高斯牛顿法</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#Levenberg-Marquard算法"><span class="post-toc-number">4.</span> <span class="post-toc-text">Levenberg-Marquard算法</span></a></li><li class="post-toc-item post-toc-level-3"><a class="post-toc-link" href="#雅克比矩阵"><span class="post-toc-number">5.</span> <span class="post-toc-text">雅克比矩阵</span></a></li></ol>
+        </nav>
+    </aside>
+
+
+<article id="post-Bundle Adjustment" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">Bundle Adjustment</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-06-16 21:46:08" datetime="2019-06-16T13:46:08.899Z" itemprop="datePublished">2019-06-16</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <p>为了描述简便，用函数 $f(x)$ 来表示我们的目标函数，其中 $x$ 是包含了我们所有参数的向量，现在我们的目标就成了求解 $f(x)$ 在何处取得极小值。这个函数的参数这么多，很明显不能直接一步到位，但是从某个值出发（对于三维重建的问题，这个出发点已经有了，就是前面计算出来的相机姿态和三维点坐标）慢慢向正确的值靠近，一次靠近一丢丢（$\delta x$），很多次后就可以很接近或者达到正确的值了。于是嘛，问题又变了，变成了我们一次靠近多少的问题了。。。问题变到这儿，貌似就有现成的方法可以解决啦。</p>
+<h3 id="梯度下降（最速下降）法"><a href="#梯度下降（最速下降）法" class="headerlink" title="梯度下降（最速下降）法"></a>梯度下降（最速下降）法</h3><p>从名字就可以看出来，这个方法是用了梯度信息。梯度的方向是函数上升最快的方向，我们要求的是最小值，那就沿着梯度方向的反方向进行靠近就可以了嘛。于是梯度下降法就是每次沿着梯度反方向以一个给定的步长进行逼近，这样就可以一步一步的靠近最小值。</p>
+<p>这个方法虽然可以保证每一次都是在下降，但是下降的速度却并不像它的名字那样很快，收敛的速度较慢。</p>
+<h3 id="牛顿法"><a href="#牛顿法" class="headerlink" title="牛顿法"></a>牛顿法</h3><p><a href="http://www.matongxue.com/madocs/205.html#/madoc" target="_blank" rel="noopener">这篇文章</a> 很好的解释了牛顿法的原理，但是貌似只能求零点啊，这个求极值有啥关系，函数导数为0的地方不就是极值么。。假设在第$k$ 次迭代的时候，我们的参数向量为$x_k$ ，本次迭代的增量为 $\delta x_k$ (也就是本次迭代要求解的东西)，那么函数就变成了$f(x_k+\delta x_k)$ ，首先将这个函数进行泰勒展开到二次项：<br>$$<br>f(x_k+\delta x_k) \approx f(x_k) + \delta x_k f’(x_k) +\frac{1}{2} (\delta x_k)^2 f’’(x_k) = \phi(\delta x_k)<br>$$<br>然后对$\phi(\delta x_k)$ 求导：<br>$$<br>\phi ‘(\delta x_k) = f’(x_k) + f’’(x_k)\delta x_k<br>$$<br>令上面的导数为0就可以求得$\delta x_k$ ，但是需要注意的是，$x_k、\delta x_k$ 都是向量，所以$f’(x_k)、f’’(x_k)$ 都是矩阵，它们分别叫做雅可比（Jacobi）矩阵(记为$J$)和海森(Hessian)矩阵(记为$H$)，雅克比矩阵是函数对所有参数求一阶偏导得到，海森矩阵是函数对所有参数求二阶偏导得到。于是：<br>$$<br>J+H\delta x_k = 0 \<br>\delta x_k = -H^{-1}J<br>$$<br>这种方法下降速度比梯度下降要快很多（至于为啥快，我就不知道了，，），但是他不能保证每次迭代都是在下降的（但是总体是在下降的）。这样貌似问题解决了，但是，回头去看看我们的函数，要对这个函数求二阶偏导，简直太复杂了，大家选择放弃，，，，</p>
+<h3 id="高斯牛顿法"><a href="#高斯牛顿法" class="headerlink" title="高斯牛顿法"></a>高斯牛顿法</h3><p>牛顿大神把问题解决了一半，高斯大神决定再帮他一把，解决海森矩阵的问题，至于解决方式嘛，，，，就是不求它。我们在泰勒展开的时候就只展开到一次项：<br>$$<br>f(x_k+\delta x_k) \approx f(x_k)+ J\delta x_k<br>$$<br>这样貌似等式右边就变成了类型$ax+b$ 这种线性的形式了啊，这懒偷得有点多了，必须找其他的约束补回来，，，比如我们的优化的是重投影误差，我们最希望它为零啊，，，于是嘛就直接令上式为零就得到了：<br>$$<br>f(x_k) + J\delta x_k = 0<br>$$<br>貌似$\delta x_k​$ 就可以求出来了：$\delta x_k = -J^{-1}f(x_k)​$ ，但是总感觉有啥不对，，，恩，$J​$ 的大小是$m\times n​$ 的，它可能不是一个方阵！！！所以它是不能直接求逆的，所以需要按照这样算：<br>$$<br>f(x_k) + J\delta x_k = 0 \<br>J^Tf(x_k) + J^TJ\delta x_k = 0 \<br>\delta x_k = -(J^TJ)^{-1}J^Tf(x_k)<br>$$</p>
+<p>这里可以看出来高斯牛顿法是利用了我们目标函数的特性来使用雅克比矩阵近似海森矩阵。这里只是解决了不计算海森矩阵，但是它还是存在不能保证每次迭代都是在下降的问题。</p>
+<h3 id="Levenberg-Marquard算法"><a href="#Levenberg-Marquard算法" class="headerlink" title="Levenberg-Marquard算法"></a>Levenberg-Marquard算法</h3><p>梯度下降可以保证每次迭代都是下降的，但是收敛慢，高斯牛顿收敛快但是不能保证每次迭代都是下降的。于是LM算法就出现啦，它把梯度下降和高斯牛顿法结合了起来，使得每次迭代都是下降的，而且收敛速度还比较快。至于怎么结合的，简直不能更粗暴，用一个参数$\lambda$ 来控制增量计算方式是靠近高斯牛顿迭代的方法还是靠近梯度下降的方法，它把上面计算增量的方程改成了下面的形式：<br>$$<br>\delta x_k = -[J^TJ+\lambda diag(J^TJ)]^{-1} J^Tf(x_k)<br>$$<br>可以看出来$\lambda$ 很小甚至为零时，增量计算方式和高斯牛顿迭代的方法是一致的；当$\lambda$ 很大的时候，大到$J^TJ$ 可以忽略的时候，就变成了：<br>$$<br>\delta x_k = -\lambda J^Tf(x_k)<br>$$<br>恩，长得和梯度下降的式子挺像的。目前的Bundle Adjustment貌似都是基于LM算法实现的。</p>
+<h3 id="雅克比矩阵"><a href="#雅克比矩阵" class="headerlink" title="雅克比矩阵"></a>雅克比矩阵</h3><p>上面提到了很多次雅克比矩阵，甚至于每次迭代都需要计算一次雅克比矩阵，雅克比又是个啥？对于我们三维重建的问题，我们期望优化的参数有相机姿态$[R\ \ \ t]$ ，这里一共有6个未知数（为啥是6个？因为旋转矩阵 $R$ 的自由度为3，事实上也可以用罗德里格斯公式转化为一个三维的向量$(r_1,r_2,r_3)$，位移向量$t$ 是长度为3的向量$(t_1,t_2,t_3)$），三维点的坐标$(x,y,z)$ 也就是一共就，9个参数。那么雅克比矩阵就一共有9列，每一列就是函数$f(x)$ 对不同的参数进行求偏导，这一列的元素值就是这个偏导数在一组参数下的取值：<br>$$<br>J = [\frac{\partial f}{\partial r_1} \ \ \frac{\partial f}{\partial r_2} \ \ \frac{\partial f}{\partial r_3} \ \ \frac{\partial f}{\partial t_1} \ \ \frac{\partial f}{\partial t_2} \ \ \frac{\partial f}{\partial t_3} \ \ \frac{\partial f}{\partial x} \ \ \frac{\partial f}{\partial y} \ \ \frac{\partial f}{\partial z}]<br>$$<br>假设一共有m个三维点，n幅图像，那么雅克比矩阵就应该有$i\times j$行，总的雅克比矩阵可以：<br>$$<br>J = \left[\begin{matrix}<br>\frac{\partial f}{\partial r_1^1} &amp;\frac{\partial f}{\partial r_2^1}&amp;\frac{\partial f}{\partial r_3^1} &amp;\frac{\partial f}{\partial t_1^1} &amp;\frac{\partial f}{\partial t_2^1} &amp;\frac{\partial f}{\partial t_3^1} &amp;\frac{\partial f}{\partial x^1} &amp;\frac{\partial f}{\partial y^1} &amp;\frac{\partial f}{\partial z^1} \<br>\frac{\partial f}{\partial r_1^2} &amp;\frac{\partial f}{\partial r_2^2}&amp;\frac{\partial f}{\partial r_3^2} &amp;\frac{\partial f}{\partial t_1^2} &amp;\frac{\partial f}{\partial t_2^2} &amp;\frac{\partial f}{\partial t_3^2} &amp;\frac{\partial f}{\partial x^1} &amp;\frac{\partial f}{\partial y^1} &amp;\frac{\partial f}{\partial z^1}  \<br>\vdots &amp; \vdots &amp;  \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \<br>\frac{\partial f}{\partial r_1^n} &amp;\frac{\partial f}{\partial r_2^n}&amp;\frac{\partial f}{\partial r_3^n} &amp;\frac{\partial f}{\partial t_1^n} &amp;\frac{\partial f}{\partial t_2^n} &amp;\frac{\partial f}{\partial t_3^n} &amp;\frac{\partial f}{\partial x^1} &amp;\frac{\partial f}{\partial y^1} &amp;\frac{\partial f}{\partial z^1}  \<br>\frac{\partial f}{\partial r_1^1} &amp;\frac{\partial f}{\partial r_2^1}&amp;\frac{\partial f}{\partial r_3^1} &amp;\frac{\partial f}{\partial t_1^1} &amp;\frac{\partial f}{\partial t_2^1} &amp;\frac{\partial f}{\partial t_3^1} &amp;\frac{\partial f}{\partial x^2} &amp;\frac{\partial f}{\partial y^2} &amp;\frac{\partial f}{\partial z^2}  \<br>\frac{\partial f}{\partial r_1^2} &amp;\frac{\partial f}{\partial r_2^2}&amp;\frac{\partial f}{\partial r_3^2} &amp;\frac{\partial f}{\partial t_1^2} &amp;\frac{\partial f}{\partial t_2^2} &amp;\frac{\partial f}{\partial t_3^2} &amp;\frac{\partial f}{\partial x^2} &amp;\frac{\partial f}{\partial y^2} &amp;\frac{\partial f}{\partial z^2}  \<br>\vdots &amp; \vdots &amp;  \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \<br>\frac{\partial f}{\partial r_1^n} &amp;\frac{\partial f}{\partial r_2^n}&amp;\frac{\partial f}{\partial r_3^n} &amp;\frac{\partial f}{\partial t_1^n} &amp;\frac{\partial f}{\partial t_2^n} &amp;\frac{\partial f}{\partial t_3^n} &amp;\frac{\partial f}{\partial x^2} &amp;\frac{\partial f}{\partial y^2} &amp;\frac{\partial f}{\partial z^2}  \<br>\vdots &amp; \vdots &amp;  \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \<br>\frac{\partial f}{\partial r_1^n} &amp;\frac{\partial f}{\partial r_2^n}&amp;\frac{\partial f}{\partial r_3^n} &amp;\frac{\partial f}{\partial t_1^n} &amp;\frac{\partial f}{\partial t_2^n} &amp;\frac{\partial f}{\partial t_3^n} &amp;\frac{\partial f}{\partial x^m} &amp;\frac{\partial f}{\partial y^m} &amp;\frac{\partial f}{\partial z^m}  \<br>\end{matrix}\right]<br>$$<br>三维重建一般都有成千上万个三维点和几十上百幅图像，所以雅克比矩阵非常庞大，每次迭代都需要计算一个如此大的矩阵，计算量也是非常巨大的，好在$J$ 是一个稀疏矩阵，也就是说有很多很多项都是0，比如当一个三维点在某一幅图像上没有投影点的时候，对应的那一行就为全为0了。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2019-06-16T13:46:08.899Z" itemprop="dateUpdated">2019-06-16 21:46:08</time>
+</span><br>
+
+
+        
+        转载请标明出处：<a href="/2019/06/16/Bundle Adjustment/" target="_blank" rel="external">http://coderic.top/2019/06/16/Bundle Adjustment/</a>
+        
+    </div>
+    
+    <footer>
+        <a href="http://coderic.top">
+            <img src="/img/touxiang.jpg" alt="yiekue">
+            yiekue
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://coderic.top/2019/06/16/Bundle Adjustment/&title=《Bundle Adjustment》 — coderic&pic=http://coderic.top/img/touxiang.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://coderic.top/2019/06/16/Bundle Adjustment/&title=《Bundle Adjustment》 — coderic&source=coder杂货店" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://coderic.top/2019/06/16/Bundle Adjustment/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Bundle Adjustment》 — coderic&url=http://coderic.top/2019/06/16/Bundle Adjustment/&via=http://coderic.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://coderic.top/2019/06/16/Bundle Adjustment/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yiekue &copy; 2015 - 2019</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://coderic.top/2019/06/16/Bundle Adjustment/&title=《Bundle Adjustment》 — coderic&pic=http://coderic.top/img/touxiang.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://coderic.top/2019/06/16/Bundle Adjustment/&title=《Bundle Adjustment》 — coderic&source=coder杂货店" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://coderic.top/2019/06/16/Bundle Adjustment/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《Bundle Adjustment》 — coderic&url=http://coderic.top/2019/06/16/Bundle Adjustment/&via=http://coderic.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://coderic.top/2019/06/16/Bundle Adjustment/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://coderic.top/2019/06/16/Bundle Adjustment/" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/main.min.js"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/search.min.js" async></script>
+
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+});
+</script>
+
+<script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
