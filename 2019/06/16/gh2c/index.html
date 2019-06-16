@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    
+
+    
+
+    
+
+
+
+    <meta charset="utf-8">
+    
+    
+    
+    
+    <title>造轮子 | golang | http2简易客户端 | coderic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#3F51B5">
+    
+    
+    <meta name="keywords" content>
+    <meta name="description" content="最近需要进行http2相关的工作，但是开发环境和测试环境都的curl版本都太老了不支持http2，正好最近在学习golang，于是决定自己造个轮子：用go语言实现一个建议的http2客户端，以本文记录折腾过程。完整代码地址：https://github.com/yiekue/gh2c.  涉及内容：  flag包的使用 标准库中http.Client的基本使用 golang中的http2  标准">
+<meta property="og:type" content="article">
+<meta property="og:title" content="造轮子 | golang | http2简易客户端">
+<meta property="og:url" content="http://coderic.top/2019/06/16/gh2c/index.html">
+<meta property="og:site_name" content="coderic">
+<meta property="og:description" content="最近需要进行http2相关的工作，但是开发环境和测试环境都的curl版本都太老了不支持http2，正好最近在学习golang，于是决定自己造个轮子：用go语言实现一个建议的http2客户端，以本文记录折腾过程。完整代码地址：https://github.com/yiekue/gh2c.  涉及内容：  flag包的使用 标准库中http.Client的基本使用 golang中的http2  标准">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-06-16T13:57:08.242Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="造轮子 | golang | http2简易客户端">
+<meta name="twitter:description" content="最近需要进行http2相关的工作，但是开发环境和测试环境都的curl版本都太老了不支持http2，正好最近在学习golang，于是决定自己造个轮子：用go语言实现一个建议的http2客户端，以本文记录折腾过程。完整代码地址：https://github.com/yiekue/gh2c.  涉及内容：  flag包的使用 标准库中http.Client的基本使用 golang中的http2  标准">
+    
+        <link rel="alternate" type="application/atom+xml" title="coderic" href="/atom.xml">
+    
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="stylesheet" href="//unpkg.com/hexo-theme-material-indigo@latest/css/style.css">
+    <script>window.lazyScripts=[]</script>
+
+    <!-- custom head -->
+    
+
+</head>
+
+<body>
+    <div id="loading" class="active"></div>
+
+    <aside id="menu" class="hide">
+  <div class="inner flex-row-vertical">
+    <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menu-off">
+        <i class="icon icon-lg icon-close"></i>
+    </a>
+    <div class="brand-wrap" style="background-image:url(/img/brand.jpg)">
+      <div class="brand">
+        <a href="/" class="avatar waves-effect waves-circle waves-light">
+          <img src="/img/touxiang.jpg">
+        </a>
+        <hgroup class="introduce">
+          <h5 class="nickname">yiekue</h5>
+          <a href="mailto:yiekue@qq.com" title="yiekue@qq.com" class="mail">yiekue@qq.com</a>
+        </hgroup>
+      </div>
+    </div>
+    <div class="scroll-wrap flex-col">
+      <ul class="nav">
+        
+            <li class="waves-block waves-effect">
+              <a href="/">
+                <i class="icon icon-lg icon-home"></i>
+                主页
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/archives">
+                <i class="icon icon-lg icon-archives"></i>
+                分类
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/tags">
+                <i class="icon icon-lg icon-tags"></i>
+                标签
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="/categories">
+                <i class="icon icon-lg icon-th-list"></i>
+                归档
+              </a>
+            </li>
+        
+            <li class="waves-block waves-effect">
+              <a href="https://github.com/yiekue" target="_blank">
+                <i class="icon icon-lg icon-github"></i>
+                Github
+              </a>
+            </li>
+        
+      </ul>
+    </div>
+  </div>
+</aside>
+
+    <main id="main">
+        <header class="top-header" id="header">
+    <div class="flex-row">
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light on" id="menu-toggle">
+          <i class="icon icon-lg icon-navicon"></i>
+        </a>
+        <div class="flex-col header-title ellipsis">造轮子 | golang | http2简易客户端</div>
+        
+        <div class="search-wrap" id="search-wrap">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="back">
+                <i class="icon icon-lg icon-chevron-left"></i>
+            </a>
+            <input type="text" id="key" class="search-input" autocomplete="off" placeholder="输入感兴趣的关键字">
+            <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="search">
+                <i class="icon icon-lg icon-search"></i>
+            </a>
+        </div>
+        
+        
+        <a href="javascript:;" class="header-icon waves-effect waves-circle waves-light" id="menuShare">
+            <i class="icon icon-lg icon-share-alt"></i>
+        </a>
+        
+    </div>
+</header>
+<header class="content-header post-header">
+
+    <div class="container fade-scale">
+        <h1 class="title">造轮子 | golang | http2简易客户端</h1>
+        <h5 class="subtitle">
+            
+                <time datetime="2019-06-16T13:54:15.000Z" itemprop="datePublished" class="page-time">
+  2019-06-16
+</time>
+
+
+            
+        </h5>
+    </div>
+
+    
+
+
+</header>
+
+
+<div class="container body-wrap">
+    
+    <aside class="post-widget">
+        <nav class="post-toc-wrap post-toc-shrink" id="post-toc">
+            <h4>TOC</h4>
+            <ol class="post-toc"><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#标准库的flag包"><span class="post-toc-number">1.</span> <span class="post-toc-text">标准库的flag包</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#http-Client-amp-amp-http2"><span class="post-toc-number">2.</span> <span class="post-toc-text">http.Client &amp;&amp; http2</span></a></li><li class="post-toc-item post-toc-level-2"><a class="post-toc-link" href="#gh2c"><span class="post-toc-number">3.</span> <span class="post-toc-text">gh2c</span></a></li></ol><li class="post-toc-item post-toc-level-1"><a class="post-toc-link" href="#FIXME"><span class="post-toc-number"></span> <span class="post-toc-text">FIXME</span></a>
+        </li></nav>
+    </aside>
+
+
+<article id="post-gh2c" class="post-article article-type-post fade" itemprop="blogPost">
+
+    <div class="post-card">
+        <h1 class="post-card-title">造轮子 | golang | http2简易客户端</h1>
+        <div class="post-meta">
+            <time class="post-time" title="2019-06-16 21:54:15" datetime="2019-06-16T13:54:15.000Z" itemprop="datePublished">2019-06-16</time>
+
+            
+
+
+            
+
+        </div>
+        <div class="post-content" id="post-content" itemprop="postContent">
+            <blockquote>
+<p>最近需要进行http2相关的工作，但是开发环境和测试环境都的curl版本都太老了不支持http2，正好最近在学习golang，于是决定自己造个轮子：用go语言实现一个建议的http2客户端，以本文记录折腾过程。完整代码地址：<a href="https://github.com/yiekue/gh2c" target="_blank" rel="noopener">https://github.com/yiekue/gh2c</a>.</p>
+</blockquote>
+<p>涉及内容：</p>
+<ul>
+<li><code>flag</code>包的使用</li>
+<li>标准库中<code>http.Client</code>的基本使用</li>
+<li>golang中的<code>http2</code></li>
+</ul>
+<h2 id="标准库的flag包"><a href="#标准库的flag包" class="headerlink" title="标准库的flag包"></a>标准库的flag包</h2><p>平时写程序中免不了根据输入的命令行参数来控制程序的行为，golang的标准库中提供了一个<a href="https://golang.org/pkg/flag/" target="_blank" rel="noopener">flag包</a>，用于解析命令行输入的各种 <code>-</code> 开头的选项，使用比较方便，免去了自己挨个解析命令行参数的麻烦。</p>
+<p>flag包支持<code>bool</code>、<code>string</code>、<code>int</code>等多种类型的选项，使用过程比较简单：</p>
+<ol>
+<li>用<code>flag.Bool()</code>、<code>flag.String()</code>等函数定义一个flag，这些函数都有三个入参，依次是flag的<strong>名称</strong>、<strong>默认值</strong>、<strong>帮助信息</strong>，函数的返回值是一个对应类型的 <strong>指针</strong> ！<strong>指针</strong> ！<strong>指针</strong> ！</li>
+<li>在使用变量之前调用<code>flag.Parse()</code>进行解析。如果解析失败，程序会退出，并且打印各个变量的帮助信息，包含名称、默认值、和之前定义的帮助信息。<strong>解析会在第一个非 <code>-</code> 开头的参数停止，在非flag参数后面的flag会被忽略</strong>。</li>
+</ol>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"flag"</span></span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">	<span class="string">"os"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 首先定义需要flag的名称、默认值、帮助信息。需要注意的是这里的函数的返回值都是指针</span></span><br><span class="line"><span class="keyword">var</span> help = flag.Bool(<span class="string">"help"</span>, <span class="literal">false</span>, <span class="string">"print help info"</span>)</span><br><span class="line"><span class="keyword">var</span> version = flag.Int(<span class="string">"v"</span>, <span class="number">2</span>, <span class="string">"http version 1/2"</span>)</span><br><span class="line"><span class="keyword">var</span> method = flag.String(<span class="string">"method"</span>, <span class="string">"GET"</span>, <span class="string">"http method, GET/POST..."</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="comment">// 首先调用Parse()函数进行解析。解析后，前面定义的各种变量就可以直接用了。</span></span><br><span class="line">	flag.Parse()</span><br><span class="line">	<span class="keyword">if</span> *help &#123;</span><br><span class="line">		<span class="comment">// 打印选项的默认值和帮助信息</span></span><br><span class="line">		flag.PrintDefaults()</span><br><span class="line">		os.Exit(<span class="number">0</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">switch</span> *version &#123;</span><br><span class="line">	<span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">		fmt.Println(<span class="string">"HTTP/1.1"</span>)</span><br><span class="line">	<span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">		fmt.Println(<span class="string">"HTTP/2.0"</span>)</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		flag.PrintDefaults()</span><br><span class="line">		os.Exit(<span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	fmt.Println(<span class="string">"method:"</span>, *method)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面这段代码的运行结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[~/code/test]$ go run test.go      </span><br><span class="line">HTTP/2.0</span><br><span class="line">method: GET</span><br></pre></td></tr></table></figure>
+
+<p>由于设置了输出帮助信息的flag默认是<code>false</code>，因此默认不会打印帮助信息，而是打印了另外两个flag的默认值。指定输出帮助信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[~/code/test]$ go run test.go -help</span><br><span class="line">  -help</span><br><span class="line">        print help info</span><br><span class="line">  -method string</span><br><span class="line">        http method, GET/POST... (default &quot;GET&quot;)</span><br><span class="line">  -v int</span><br><span class="line">        http version 1/2 (default 2)</span><br></pre></td></tr></table></figure>
+
+<p>设置<code>bool</code>型的flag，只需要在命令行中添加这个flag即可，不需要指定它的值。而对于<code>string</code>之类的flag，就需要指定flag的值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[~/code/test]$ go run test.go -v 1 -method &quot;POST&quot;</span><br><span class="line">HTTP/1.1</span><br><span class="line">method: POST</span><br></pre></td></tr></table></figure>
+
+<p>如果命令行中的flag在代码中没有定义或者flag的输入格式错误，程序会打印错误信息和已定义的flag信息并退出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[~/code/test]$ go run test.go -v 1 -metho  </span><br><span class="line">flag provided but not defined: -metho</span><br><span class="line">Usage of /tmp/go-build852894954/b001/exe/test:</span><br><span class="line">  -help</span><br><span class="line">        print help info</span><br><span class="line">  -method string</span><br><span class="line">        http method, GET/POST... (default &quot;GET&quot;)</span><br><span class="line">  -v int</span><br><span class="line">        http version 1/2 (default 2)</span><br><span class="line">exit status 2</span><br></pre></td></tr></table></figure>
+
+<h2 id="http-Client-amp-amp-http2"><a href="#http-Client-amp-amp-http2" class="headerlink" title="http.Client &amp;&amp; http2"></a>http.Client &amp;&amp; http2</h2><p>golang的标准库<code>net/http</code>中提供了一个http的客户端，可以进行简单的http操作。但是如果要使用http2就需要额外的<code>golang.org/x/net/http2</code>，由于国内特殊的网络环境，golang.org无法直接访问到，可以到github的<a href="https://github.com/golang/net" target="_blank" rel="noopener">镜像仓库</a>中下载使用。同时需要下载http2依赖的<a href="https://github.com/golang/text" target="_blank" rel="noopener">text</a>.</p>
+<p>使用Client的步骤一般如下：</p>
+<ol>
+<li>新建一个<code>http.Client</code></li>
+<li>设置<code>client</code>的各项参数，例如tls参数，http版本等。</li>
+<li>使用<code>http.NewRequest()</code>，新建一个请求，并设置请求的请求头等各项参数。</li>
+<li>使用<code>client.Do(req)</code>，发送一个请求。</li>
+<li>处理请求的响应信息。</li>
+</ol>
+<p>使用<code>http.Client</code>发起http请求的流程：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> (</span><br><span class="line">	<span class="string">"crypto/tls"</span></span><br><span class="line">	<span class="string">"flag"</span></span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">	<span class="string">"golang.org/x/net/http2"</span></span><br><span class="line">	<span class="string">"io/ioutil"</span></span><br><span class="line">	<span class="string">"net/http"</span></span><br><span class="line">	<span class="string">"os"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> help = flag.Bool(<span class="string">"help"</span>, <span class="literal">false</span>, <span class="string">"print help info"</span>)</span><br><span class="line"><span class="keyword">var</span> version = flag.Int(<span class="string">"v"</span>, <span class="number">2</span>, <span class="string">"http version 1/2"</span>)</span><br><span class="line"><span class="keyword">var</span> method = flag.String(<span class="string">"method"</span>, <span class="string">"GET"</span>, <span class="string">"http method, GET/POST..."</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	flag.Parse()</span><br><span class="line">	<span class="keyword">if</span> *help &#123;</span><br><span class="line">		flag.PrintDefaults()</span><br><span class="line">		os.Exit(<span class="number">0</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 从命令行读取URL，URL需要在各种flag之后</span></span><br><span class="line">	url := flag.Arg(<span class="number">0</span>)</span><br><span class="line">	<span class="keyword">if</span> <span class="string">""</span> == url &#123;</span><br><span class="line">		fmt.Println(<span class="string">"error: please input URL"</span>)</span><br><span class="line">		flag.PrintDefaults()</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	tlsConfig := &amp;tls.Config&#123;</span><br><span class="line">		InsecureSkipVerify: <span class="literal">false</span>,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 新建一个client</span></span><br><span class="line">	client := &amp;http.Client&#123;&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 设置http版本，默认使用http2</span></span><br><span class="line">	<span class="keyword">switch</span> *version &#123;</span><br><span class="line">	<span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">		client.Transport = &amp;http.Transport&#123;</span><br><span class="line">			TLSClientConfig: tlsConfig,</span><br><span class="line">		&#125;</span><br><span class="line">	<span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">		client.Transport = &amp;http2.Transport&#123;</span><br><span class="line">			TLSClientConfig: tlsConfig,</span><br><span class="line">		&#125;</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		fmt.Println(<span class="string">"error: unkown http version:"</span>, *version)</span><br><span class="line">		flag.PrintDefaults()</span><br><span class="line">		os.Exit(<span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 使用参数输入的请求方法和url新建一个请求</span></span><br><span class="line">	req, err := http.NewRequest(*method, url, <span class="literal">nil</span>)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		fmt.Println(<span class="string">"error: failed to create request,"</span>, err)</span><br><span class="line">		flag.PrintDefaults()</span><br><span class="line">		os.Exit(<span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 设置User-Agent</span></span><br><span class="line">	req.Header.Set(<span class="string">"User-Agent"</span>, <span class="string">"GH2C"</span>)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 发送请求</span></span><br><span class="line">	resp, err := client.Do(req)</span><br><span class="line">	<span class="keyword">if</span> <span class="literal">nil</span> != err &#123;</span><br><span class="line">		fmt.Println(<span class="string">"error: failed to do request,"</span>, err)</span><br><span class="line">		flag.PrintDefaults()</span><br><span class="line">		os.Exit(<span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> resp.Body.Close()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 读取响应体信息</span></span><br><span class="line">	body, err := ioutil.ReadAll(resp.Body)</span><br><span class="line">	<span class="keyword">if</span> <span class="literal">nil</span> != err &#123;</span><br><span class="line">		fmt.Println(<span class="string">"error: failed to read body."</span>)</span><br><span class="line">		flag.PrintDefaults()</span><br><span class="line">		os.Exit(<span class="number">1</span>)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 答应响应头和响应体长度</span></span><br><span class="line">	fmt.Println(<span class="string">"&gt;"</span>, resp.Proto, resp.Status)</span><br><span class="line">	<span class="keyword">for</span> k, vs := <span class="keyword">range</span> resp.Header &#123;</span><br><span class="line">		<span class="keyword">for</span> _, v := <span class="keyword">range</span> vs &#123;</span><br><span class="line">			fmt.Printf(<span class="string">"&gt; %s: %s\n"</span>, k, v)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	fmt.Println(<span class="string">"body.length:"</span>, <span class="built_in">len</span>(<span class="keyword">string</span>(body)))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在网上百度一个支持http2的网站，测试一把，效果如下<em>（域名侵删）</em>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[~/code/test]$ go run test.go -v 2 https://www.chinacache.com/</span><br><span class="line">&gt; HTTP/2.0 200 OK</span><br><span class="line">&gt; Content-Type: text/html</span><br><span class="line">&gt; Expires: Mon, 17 Jun 2019 04:39:54 GMT</span><br><span class="line">&gt; Accept-Ranges: bytes</span><br><span class="line">&gt; Age: 19405</span><br><span class="line">&gt; Etag: W/&quot;5cdbdbc8-2dc0&quot;</span><br><span class="line">&gt; Last-Modified: Wed, 15 May 2019 09:28:40 GMT</span><br><span class="line">&gt; Date: Sun, 16 Jun 2019 04:39:54 GMT</span><br><span class="line">&gt; Server: nginx</span><br><span class="line">&gt; Powered-By-Chinacache: HIT from CMN-CD-b-3g3</span><br><span class="line">&gt; Cc_cache: TCP_HIT</span><br><span class="line">body.length: 11712</span><br></pre></td></tr></table></figure>
+
+<h2 id="gh2c"><a href="#gh2c" class="headerlink" title="gh2c"></a><a href="https://github.com/yiekue/gh2c" target="_blank" rel="noopener">gh2c</a></h2><p>将在上一节的基础上增加更多的flag来增加更多的功能就成了支持http2的简易拨测工具<a href="https://github.com/yiekue/gh2c" target="_blank" rel="noopener">gh2c</a>：</p>
+<ul>
+<li>支持自定义头域</li>
+<li>自定义是否忽略证书</li>
+<li>更友好的输出信息</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">*[master][~/code/gh2c]$ ./gh2c -help            </span><br><span class="line">Usage: ./gh2c -[flags] url</span><br><span class="line">  -H string</span><br><span class="line">        custom headers</span><br><span class="line">  -HKVsep string</span><br><span class="line">        used for split a custom header key and value (default &quot;:&quot;)</span><br><span class="line">  -Hsep string</span><br><span class="line">        used for split custom headers (default &quot;;&quot;)</span><br><span class="line">  -body</span><br><span class="line">        output response body</span><br><span class="line">  -debug</span><br><span class="line">        print debug info</span><br><span class="line">  -help</span><br><span class="line">        print help info</span><br><span class="line">  -host string</span><br><span class="line">        custom Host to override default (default &quot;defaltHost&quot;)</span><br><span class="line">  -method string</span><br><span class="line">        http method, GET/POST... (default &quot;GET&quot;)</span><br><span class="line">  -v int</span><br><span class="line">        http version 1/2 (default 2)</span><br><span class="line">  -verifyCert</span><br><span class="line">        enable verification of the server certificate</span><br></pre></td></tr></table></figure>
+
+<p>效果如下，默认不输出body：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">*[master][~/code/gh2c]$ go run gh2c.go -v 2 -H &quot;test:testheadker|test2:testheader2&quot; -Hsep &quot;|&quot; https://example.com/</span><br><span class="line">&lt; GET HTTP/2.0 /</span><br><span class="line">&lt; Host: www.chinacache.com</span><br><span class="line">&lt; Test: testheadker</span><br><span class="line">&lt; Test2: testheader2</span><br><span class="line">&lt; User-Agent: GH2C</span><br><span class="line">&lt;</span><br><span class="line">&gt; HTTP/2.0 200 OK</span><br><span class="line">&gt; Etag: W/&quot;5cdbdbc8-2dc0&quot;</span><br><span class="line">&gt; Last-Modified: Wed, 15 May 2019 09:28:40 GMT</span><br><span class="line">&gt; Date: Sun, 16 Jun 2019 04:39:54 GMT</span><br><span class="line">&gt; Server: nginx</span><br><span class="line">&gt; Cc_cache: TCP_HIT</span><br><span class="line">&gt; Accept-Ranges: bytes</span><br><span class="line">&gt; Age: 11967</span><br><span class="line">&gt; Expires: Mon, 17 Jun 2019 04:39:54 GMT</span><br><span class="line">&gt; Powered-By-Chinacache: HIT from CMN-CD-b-3g3</span><br><span class="line">&gt; Content-Type: text/html</span><br><span class="line">&lt;</span><br></pre></td></tr></table></figure>
+
+<h1 id="FIXME"><a href="#FIXME" class="headerlink" title="FIXME"></a>FIXME</h1><p>在把<code>http2.Transport</code>赋值给<code>client.Transport</code>之后，使用<code>req.Proto</code>获取到的仍然是<code>HTTP/1.1</code>，不知道怎么获取实际使用http版本。</p>
+
+        </div>
+
+        <blockquote class="post-copyright">
+    
+    <div class="content">
+        
+<span class="post-time">
+    最后更新时间：<time datetime="2019-06-16T13:57:08.242Z" itemprop="dateUpdated">2019-06-16 21:57:08</time>
+</span><br>
+
+
+        
+        转载请标明出处：<a href="/2019/06/16/gh2c/" target="_blank" rel="external">http://coderic.top/2019/06/16/gh2c/</a>
+        
+    </div>
+    
+    <footer>
+        <a href="http://coderic.top">
+            <img src="/img/touxiang.jpg" alt="yiekue">
+            yiekue
+        </a>
+    </footer>
+</blockquote>
+
+        
+
+
+        <div class="post-footer">
+            
+
+            
+<div class="page-share-wrap">
+    
+
+<div class="page-share" id="pageShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://coderic.top/2019/06/16/gh2c/&title=《造轮子 | golang | http2简易客户端》 — coderic&pic=http://coderic.top/img/touxiang.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://coderic.top/2019/06/16/gh2c/&title=《造轮子 | golang | http2简易客户端》 — coderic&source=coder杂货店" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://coderic.top/2019/06/16/gh2c/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《造轮子 | golang | http2简易客户端》 — coderic&url=http://coderic.top/2019/06/16/gh2c/&via=http://coderic.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://coderic.top/2019/06/16/gh2c/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+
+    <a href="javascript:;" id="shareFab" class="page-share-fab waves-effect waves-circle">
+        <i class="icon icon-share-alt icon-lg"></i>
+    </a>
+</div>
+
+
+
+        </div>
+    </div>
+
+    
+<nav class="post-nav flex-row flex-justify-between flex-row-reverse">
+  
+
+  
+    <div class="waves-block waves-effect next">
+      <a href="/2019/06/16/Bundle Adjustment/" id="post-next" class="post-nav-link">
+        <div class="tips">Next <i class="icon icon-angle-right icon-lg icon-pl"></i></div>
+        <h4 class="title">Bundle Adjustment</h4>
+      </a>
+    </div>
+  
+</nav>
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</article>
+
+
+
+</div>
+
+        <footer class="footer">
+    <div class="top">
+        
+
+        <p>
+            
+                <span><a href="/atom.xml" target="_blank" class="rss" title="rss"><i class="icon icon-lg icon-rss"></i></a></span>
+            
+            <span>博客内容遵循 <a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh">知识共享 署名 - 非商业性 - 相同方式共享 4.0 国际协议</a></span>
+        </p>
+    </div>
+    <div class="bottom">
+        <p><span>yiekue &copy; 2015 - 2019</span>
+            <span>
+                
+                Power by <a href="http://hexo.io/" target="_blank">Hexo</a> Theme <a href="https://github.com/yscoder/hexo-theme-indigo" target="_blank">indigo</a>
+            </span>
+        </p>
+    </div>
+</footer>
+
+    </main>
+    <div class="mask" id="mask"></div>
+<a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-light"><span class="icon icon-lg icon-chevron-up"></span></a>
+
+
+
+<div class="global-share" id="globalShare">
+    <ul class="reset share-icons">
+      <li>
+        <a class="weibo share-sns" target="_blank" href="http://service.weibo.com/share/share.php?url=http://coderic.top/2019/06/16/gh2c/&title=《造轮子 | golang | http2简易客户端》 — coderic&pic=http://coderic.top/img/touxiang.jpg" data-title="微博">
+          <i class="icon icon-weibo"></i>
+        </a>
+      </li>
+      <li>
+        <a class="weixin share-sns wxFab" href="javascript:;" data-title="微信">
+          <i class="icon icon-weixin"></i>
+        </a>
+      </li>
+      <li>
+        <a class="qq share-sns" target="_blank" href="http://connect.qq.com/widget/shareqq/index.html?url=http://coderic.top/2019/06/16/gh2c/&title=《造轮子 | golang | http2简易客户端》 — coderic&source=coder杂货店" data-title=" QQ">
+          <i class="icon icon-qq"></i>
+        </a>
+      </li>
+      <li>
+        <a class="facebook share-sns" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://coderic.top/2019/06/16/gh2c/" data-title=" Facebook">
+          <i class="icon icon-facebook"></i>
+        </a>
+      </li>
+      <li>
+        <a class="twitter share-sns" target="_blank" href="https://twitter.com/intent/tweet?text=《造轮子 | golang | http2简易客户端》 — coderic&url=http://coderic.top/2019/06/16/gh2c/&via=http://coderic.top" data-title=" Twitter">
+          <i class="icon icon-twitter"></i>
+        </a>
+      </li>
+      <li>
+        <a class="google share-sns" target="_blank" href="https://plus.google.com/share?url=http://coderic.top/2019/06/16/gh2c/" data-title=" Google+">
+          <i class="icon icon-google-plus"></i>
+        </a>
+      </li>
+    </ul>
+ </div>
+
+
+<div class="page-modal wx-share" id="wxShare">
+    <a class="close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <img src="//api.qrserver.com/v1/create-qr-code/?data=http://coderic.top/2019/06/16/gh2c/" alt="微信分享二维码">
+</div>
+
+
+
+
+    <script src="//cdn.bootcss.com/node-waves/0.7.4/waves.min.js"></script>
+<script>
+var BLOG = { ROOT: '/', SHARE: true, REWARD: false };
+
+
+</script>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/main.min.js"></script>
+
+
+<div class="search-panel" id="search-panel">
+    <ul class="search-result" id="search-result"></ul>
+</div>
+<template id="search-tpl">
+<li class="item">
+    <a href="{path}" class="waves-block waves-effect">
+        <div class="title ellipsis" title="{title}">{title}</div>
+        <div class="flex-row flex-middle">
+            <div class="tags ellipsis">
+                {tags}
+            </div>
+            <time class="flex-col time">{date}</time>
+        </div>
+    </a>
+</li>
+</template>
+
+<script src="//unpkg.com/hexo-theme-material-indigo@latest/js/search.min.js" async></script>
+
+
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+});
+</script>
+
+<script async src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+
+
+
+
+
+
+</body>
+</html>
